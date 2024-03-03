@@ -13,8 +13,8 @@ Tools used:
 
 ## Table of contents
 
-1. Introduction to MongoDB
-2. MongoDB installation for Windows
+1. [Introduction to MongoDB](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#chapter-01-introduction-to-mongodb)
+2. [MongoDB installation for Windows](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#chapter-02-mongodb-installation-for-windows)
 
 ---
 
