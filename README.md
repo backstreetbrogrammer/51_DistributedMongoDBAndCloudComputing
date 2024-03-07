@@ -16,6 +16,8 @@ Tools used:
 1. [Introduction to MongoDB](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#chapter-01-introduction-to-mongodb)
 2. [MongoDB installation for Windows](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#chapter-02-mongodb-installation-for-windows)
 3. [MongoDB Replication](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#chapter-03-mongodb-replication)
+4. [MongoDB Sharding](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#chapter-04-mongodb-sharding)
+5. [Introduction to Cloud Computing](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#chapter-05-introduction-to-cloud-computing)
 
 ---
 
@@ -198,24 +200,24 @@ An **arbiter** will always be an **arbiter** whereas a **primary** may step down
 Let's create three new directories in our local system.
 
 ```
-cd <local path>/mongodb
+cd <local path>
 mkdir rs0-0 rs0-1 rs0-2
 ```
 
 Now, we will launch our **first** `mongodb` replica instance.
 
 ```
-mongod --replSet rs0 --port 27017 --bind_ip 127.0.0.1 --dbpath "C:\Users\rishi\Downloads\BuildWithTech\Guidemy\mongodb\rs0-0" --oplogSize 128
+mongod --replSet rs0 --port 27017 --bind_ip 127.0.0.1 --dbpath "<local path>\rs0-0" --oplogSize 128
 ```
 
 We will launch other two `mongod` replica instances belonging to the same replica set `rs0`.
 
 ```
-mongod --replSet rs0 --port 27018 --bind_ip 127.0.0.1 --dbpath "C:\Users\rishi\Downloads\BuildWithTech\Guidemy\mongodb\rs0-1" --oplogSize 128
+mongod --replSet rs0 --port 27018 --bind_ip 127.0.0.1 --dbpath "<local path>\rs0-1" --oplogSize 128
 ```
 
 ```
-mongod --replSet rs0 --port 27019 --bind_ip 127.0.0.1 --dbpath "C:\Users\rishi\Downloads\BuildWithTech\Guidemy\mongodb\rs0-2" --oplogSize 128
+mongod --replSet rs0 --port 27019 --bind_ip 127.0.0.1 --dbpath "<local path>\rs0-2" --oplogSize 128
 ```
 
 Next step is to connect to one of the `mongod` instances via mongo client: `mongo --port 27017`
@@ -246,4 +248,393 @@ If we `quit()` and again connect: `mongo --port 27017`, we may see that our firs
 **PRIMARY**.
 
 Similarly, connection to ports `27018` and `27019` will show as **SECONDARY** nodes.
+
+**_Simple Java App for Guidemy Online courses_**
+
+- Application can enroll new students
+- Each course will be stored in a separate `mongodb` **collection**
+- Application will validate if:
+    - if a new student is already enrolled
+    - if the student has passed entrance test exams with minimum cutoff marks
+
+We need to add `mongdb` driver dependency in `pom.xml`.
+
+```
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver</artifactId>
+            <version>3.12.14</version>
+        </dependency>
+```
+
+Class `GuidemyOnline`:
+
+```java
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
+import com.mongodb.ReadPreference;
+import com.mongodb.WriteConcern;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
+
+import static com.mongodb.client.model.Filters.eq;
+
+public class GuidemyOnline {
+
+    private static final String MONGO_DB_URL
+            = "mongodb://127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019/?replicaSet=rs0";
+    private static final String DB_NAME = "guidemy-online";
+    private static final double MIN_PASSING_MARKS_PERCENTAGE = 90.0D;
+
+    public static void main(final String[] args) {
+        final String courseName = args[0];
+        final String studentName = args[1];
+        final int age = Integer.parseInt(args[2]);
+        final double testMarksPercentage = Double.parseDouble(args[3]);
+
+        final MongoDatabase guidemyOnlineDb = connectToMongoDB(MONGO_DB_URL, DB_NAME);
+        enroll(guidemyOnlineDb, courseName, studentName, age, testMarksPercentage);
+    }
+
+    private static void enroll(final MongoDatabase database, final String courseName, final String studentName,
+                               final int age, final double testMarksPercentage) {
+        if (!isValidCourse(database, courseName)) {
+            System.err.printf("Invalid course: %s%n", courseName);
+            return;
+        }
+
+        final MongoCollection<Document> courseCollection
+                = database.getCollection(courseName)
+                          .withWriteConcern(WriteConcern.MAJORITY)
+                          .withReadPreference(ReadPreference.primaryPreferred());
+
+        if (courseCollection.find(eq("name", studentName)).first() != null) {
+            System.out.printf("Student %s has already enrolled%n", studentName);
+            return;
+        }
+
+        if (testMarksPercentage < MIN_PASSING_MARKS_PERCENTAGE) {
+            System.out.printf("Please give the entrance test again and get more than cutoff: [%.1f] %n",
+                              MIN_PASSING_MARKS_PERCENTAGE);
+            return;
+        }
+
+        courseCollection.insertOne(new Document("name", studentName)
+                                           .append("age", age)
+                                           .append("testMarksPercentage", testMarksPercentage));
+        System.out.printf("Student [%s] was successfully enrolled in course [%s]%n", studentName, courseName);
+
+        for (final Document document : courseCollection.find()) {
+            System.out.println(document);
+        }
+    }
+
+    private static boolean isValidCourse(final MongoDatabase database, final String courseName) {
+        boolean isCollectionFound = false;
+        for (final String collectionName : database.listCollectionNames()) {
+            if (collectionName.equals(courseName)) {
+                isCollectionFound = true;
+                break;
+            }
+        }
+        return isCollectionFound;
+    }
+
+    public static MongoDatabase connectToMongoDB(final String url, final String dbName) {
+        final MongoClient mongoClient = new MongoClient(new MongoClientURI(url));
+        return mongoClient.getDatabase(dbName);
+    }
+
+}
+
+```
+
+Create the packaged jar: `mvn clean package`
+
+**_Demo Run_**
+
+a) Running the program with arguments: `Python John 25 91.5`
+
+- Output: `Invalid course: Python`
+
+b) Let's connect to our MongoDB primary node and then add Python course: `mongo --port 27017`
+
+```
+$ mongo --port 27017
+
+# create new collection
+rs0:PRIMARY> use guidemy-online
+
+# add Python course
+rs0:PRIMARY> db.createCollection("Python")
+
+# verify
+rs0:PRIMARY> show collections
+Python
+```
+
+c) Let's rerun the program with the same arguments: `Python John 25 91.5`
+
+- Output:
+
+```
+Student [John] was successfully enrolled in course [Python]
+Document{{_id=65e8ec252853ca1558e652e7, name=John, age=25, testMarksPercentage=91.5}}
+```
+
+d) Rerun the program with the same arguments: `Python John 25 91.5`
+
+- Output: `Student John has already enrolled`
+
+e) Running the program with arguments: `Python Rahul 31 88.3`
+
+- Output: `Please give the entrance test again and get more than cutoff: [90.0] `
+
+f) Let's rerun the program with the improved entrance test marks arguments: `Python Rahul 31 94.0`
+
+- Output:
+
+```
+Student [Rahul] was successfully enrolled in course [Python]
+Document{{_id=65e8ec252853ca1558e652e7, name=John, age=25, testMarksPercentage=91.5}}
+Document{{_id=65e8ed5e5c5cd95f9276c850, name=Rahul, age=31, testMarksPercentage=94.0}}
+```
+
+g) Let's shut down the mongoDB primary node and add a new student to the course: `Python Anna 21 97.5`
+
+- Output:
+
+```
+Student [Anna] was successfully enrolled in course [Python]
+Document{{_id=65e8ec252853ca1558e652e7, name=John, age=25, testMarksPercentage=91.5}}
+Document{{_id=65e8ed5e5c5cd95f9276c850, name=Rahul, age=31, testMarksPercentage=94.0}}
+Document{{_id=65e8eea0494d1b36b560742e, name=Anna, age=21, testMarksPercentage=97.5}}
+```
+
+Thus, we observed that even if the primary node was down, one of the two secondary nodes became primary.
+
+Data was replicated correctly, providing fault tolerance.
+
+---
+
+## Chapter 04. MongoDB Sharding
+
+Sharding allows us to scale your database to handle increased loads to a nearly unlimited degree.
+
+It does this by increasing **read/write throughput**, and storage **capacity**.
+
+In MongoDB, a sharded cluster consists of:
+
+- Shards
+- Mongos
+- Config servers
+
+A **shard** is a **_replica set_** that contains a subset of the cluster's data.
+
+The `mongos` acts as a query **router** for client applications, handling both read and write operations.
+
+It dispatches client requests to the relevant shards and aggregates the result from shards into a consistent client
+response.
+
+Clients connect to a `mongos`, not to individual shards.
+
+**Config servers** are the authoritative source of sharding **metadata**.
+
+The sharding metadata reflects the state and organization of the sharded data.
+
+The metadata contains the list of sharded collections, routing information, etc.
+
+In its simplest configuration (a single shard), a sharded cluster will look like this:
+
+![SingleShard](SingleShard.PNG)
+
+**_Sharding strategy_**
+
+MongoDB supports two sharding strategies for distributing data across sharded clusters:
+
+- Ranged Sharding
+- Hashed Sharding
+
+**Ranged sharding** divides data into **_ranges_** based on the shard key values.
+
+Each chunk is then assigned a range based on the shard key values.
+
+![RangedSharding](RangedSharding.PNG)
+
+A range of shard keys whose values are **“close”** are more likely to reside on the same chunk.
+
+This allows for targeted operations as a `mongos` can route the operations to only the shards that contain the required
+data.
+
+**Hashed Sharding** involves computing a **_hash_** of the shard key field’s value.
+
+Each chunk is then assigned a range based on the hashed shard key values.
+
+![HashedSharding](HashedSharding.PNG)
+
+While a range of shard keys may be **“close”**, their hashed values are unlikely to be on the same chunk.
+
+Data distribution based on hashed values facilitates more even data distribution, especially in data sets where the
+shard key changes monotonically.
+
+However, hashed sharding does not provide efficient range-based operations.
+
+**_Sharding demo in local_**
+
+- Create three folders in local:
+
+```
+cd <local-folder>
+mkdir config-srv-0 config-srv-1 config-srv-2
+```
+
+- Run the local `mongod` config servers:
+
+```
+$ mongod --configsvr --replSet config-rs --dbpath "<local path>\config-srv-0" --bind_ip 127.0.0.1 --port 27020 
+```
+
+```
+$ mongod --configsvr --replSet config-rs --dbpath "<local path>\config-srv-1" --bind_ip 127.0.0.1 --port 27021 
+```
+
+```
+$ mongod --configsvr --replSet config-rs --dbpath "<local path>\config-srv-2" --bind_ip 127.0.0.1 --port 27022 
+```
+
+- Connect to `mongod` config server
+
+```
+$ mongo --port 27020
+```
+
+Initialize our config servers by running this command:
+
+```
+rs.initiate({
+  _id: "config-rs",
+  members: [
+    {
+      _id: 0,
+      host: "127.0.0.1:27020"
+    },
+    {
+      _id: 1,
+      host: "127.0.0.1:27021"
+    },
+    {
+      _id: 2,
+      host: "127.0.0.1:27022"
+    }
+  ]
+})
+```
+
+- Let's create our two shards:
+
+```
+cd <local-folder>
+mkdir shard-0 shard-1
+```
+
+- Run these two shards:
+
+```
+$ mongod --shardsvr --port 27017 --bind_ip 127.0.0.1 --dbpath "<local path>\shard-0" --oplogSize 128
+```
+
+```
+$ mongod --shardsvr --port 27018 --bind_ip 127.0.0.1 --dbpath "<local path>\shard-1" --oplogSize 128
+```
+
+- Lastly, let's run our `mongos` router:
+
+```
+$ mongos --configdb config-rs/127.0.0.1:27020,127.0.0.1:27021,127.0.0.1:27022 --bind_ip 127.0.0.1 --port 27023
+```
+
+- Let's add our shard details to `mongos`:
+
+```
+$ mongo --port 27023
+```
+
+```
+mongos> sh.addShard("127.0.0.1:27017")
+```
+
+```
+mongos> sh.addShard("127.0.0.1:27018")
+```
+
+- Change the chunk size:
+
+```
+mongos> use config
+mongos> db.settings.save( { _id:"chunksize", value: 1 } )
+```
+
+**Video DB Demo app**
+
+- Let's create our new database:
+
+```
+mongos> use videodb
+
+mongos> sh.enableSharding("videodb")
+```
+
+- Insert some sample movies:
+
+```
+mongos> db.movies.insertOne({ "name": "Pulp Fiction", "directors": ["Quentin Tarantino"], "year": 1994, "cast": ["Amanda Plummer", "Samuel L. Jackson", "Bruce Willis", "John Travolta", "Uma Thurman"], "rating": 10.0 })
+mongos> db.movies.insertOne({ "name": "Moana", "directors": ["Ron Clements", "John Musker"], "year": 2016, "cast": ["Aulii Wayne Johnson", "Temuera Morrison", "Rachael House", "Alan Tudyk", "Rachael House"], "rating": 9.9 })
+```
+
+We can shard the `movies` collection:
+
+- based on `name` field, OR,
+- using the **range-based** strategy.
+
+Let's create an index first on `name` field:
+
+```
+mongos> db.movies.createIndex( { name: 1 } )
+
+# shard the collection
+mongos> sh.shardCollection("videodb.movies", { name : 1 } )
+
+# check the status
+mongos> sh.status()
+```
+
+Now, we can try the **hash-based** sharding.
+
+- We can create a new collection: `users`
+
+```
+mongos> use videodb
+
+# insert 2 documents
+mongos> db.users.insertOne({ "user_name": "Michael Pogrey", "watched_movies": ["Moana", "Start Wars"], "favorite_genres": ["anime", "action"] })
+mongos> db.users.insertOne({ "user_name": "Mary Gardener", "watched_movies": ["Dracula", "Spider Man"], "favorite_genres": ["horror", "cartoon", "action"] })
+
+# create hash-based index
+mongos> db.users.createIndex( { _id: "hashed" } )
+```
+
+- We can shard the collection
+
+```
+mongos> sh.shardCollection("videodb.users", { _id: "hashed" } )
+
+# check the status
+mongos> sh.status(true)
+```
+
+---
+
+## Chapter 05. Introduction to Cloud Computing
+
 
