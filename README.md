@@ -18,6 +18,7 @@ Tools used:
 3. [MongoDB Replication](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#chapter-03-mongodb-replication)
 4. [MongoDB Sharding](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#chapter-04-mongodb-sharding)
 5. [Introduction to Cloud Computing](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#chapter-05-introduction-to-cloud-computing)
+6. [Create Continuous Delivery Pipeline in AWS](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#chapter-06-create-continuous-delivery-pipeline-in-aws)
 
 ---
 
@@ -637,4 +638,189 @@ mongos> sh.status(true)
 
 ## Chapter 05. Introduction to Cloud Computing
 
+**Before Cloud Computing**, if we wanted to deploy a distributed system, we had only one option:
 
+- Buy / Rent a server room
+- Buy and setup all the infrastructure ourselves or hire someone to do it
+- Need a permanent staff to maintain and upgrade all the servers, routers, load balancers, etc.
+
+**Birth of Cloud Computing**
+
+- As all the companies (big or small) had to do the above, a few large companies came to the conclusion that
+  distributed systems building blocks should be treated as a **utility**
+- **Amazon (AWS), Microsoft (Azure) and Google (GCP)** first created an internal API: infrastructure API
+- Then, they externalized it in a form of cloud offering called **infrastructure as a service (IAAS)**
+- In addition, they launched features as **Platform as a Service (PAAS)** that provides higher level of abstraction
+  for developers
+
+**Benefits of the Cloud**
+
+- Cloud vendors made their internal infrastructure for us available for rent on demand
+- Paying just for what we use
+- We can get our start-ups and running within minutes
+- No need for large initial investment up front
+- Cloud vendors focus on the infrastructure
+- We focus on our business logic
+
+Many cloud vendors are present now, offering hundreds of features with:
+
+- Ease to use UIs
+- High quality documentation
+- Low prices
+- Constantly changing products
+
+**Geo Regions**
+
+Amazon cloud computing resources are hosted in multiple locations world-wide.
+
+These locations are composed of **AWS Regions**, **Availability Zones**, and **Local Zones**.
+
+Each **AWS Region** is a separate geographic area.
+
+Each **AWS Region** has multiple, isolated locations known as **Availability Zones**.
+
+By using **Local Zones**, we can place resources, such as _compute_ and _storage_, in multiple locations closer to our
+users.
+
+**To summarize,**
+
+Data replication and configuration sharing between regions is limited, but this isolation provides the following
+benefits:
+
+- Fault tolerance and stability in case of a natural disaster
+- Compliance with local rules and regulations
+- Security isolation
+- Low latency
+
+Data replication across regions is possible, however it:
+
+- incurs higher costs
+- slower and complex
+
+**Cloud Infrastructure Building Blocks**
+
+**a) Compute Nodes (VMs)**
+
+- Examples:
+    - AWS - _Elastic Cloud Compute (EC2)_
+    - Microsoft Azure - _Virtual Machine_
+    - GCP - _Compute Engine_
+- Running on virtual machines
+- Coming in different sizes and configurations
+
+**b) Autoscaling**
+
+- Examples:
+    - AWS - _Autoscaling groups_
+    - Microsoft Azure - _Virtual Machine Scale Sets_
+    - GCP - _Instance Group Autoscaling_
+- Allows us to intelligently and automatically adjust our compute capability
+- Maintain steady performance at the lowest cost
+- Run and pay just for as many compute instances as we need
+
+**c) Load Balancers**
+
+- Examples:
+    - AWS - _Elastic Load Balancer (ELB)_
+    - Microsoft Azure - _Azure Load Balancer_
+    - GCP - _Google Cloud Load Balancer (GCLB)_
+- Provides:
+    - Unified IP Address
+    - Load balancing capabilities
+    - Failure detection
+    - Monitoring
+
+**d) Cloud Storage Solutions**
+
+- Examples:
+    - AWS - _Amazon Simple Storage Service (S3)_
+    - Microsoft Azure - _Azure Storage_
+    - GCP - _Google Cloud Storage_
+- Multiple tiers:
+    - Ultra economical rarely accessed storage for long-term backup
+    - High QPS, low latency file storage for video, audio and app data
+- All provide above 99.9% availability and durability
+
+**e) Databases**
+
+- SQL Databases:
+    - AWS - _Amazon Relational Database Service (RDS)_
+    - Microsoft Azure - _Azure SQL Database_
+    - GCP - _Spanner / Cloud SQL_
+- NoSQL Databases and Caching layers:
+    - AWS - _DynamoDB_, _Elasticache_
+    - Microsoft Azure - _Azure Cosmo DB_
+    - GCP - _Bigtable / Memorystore_
+- Mix of cloud and our own databases deployments
+
+**f) Other general purpose services**
+
+- Unified logging
+- Monitoring
+- Alerting
+- Big Data Analytics
+- Distributed Queues
+- Specialized services:
+    - Serverless / Functional as a services
+    - Machine Learning APIs and hardware
+    - Internet Of Things (IOT) services
+    - Blockchain
+    - Security
+    - etc.
+
+Example of AWS building blocks (subset):
+
+![AWSBuildingBlocks](AWSBuildingBlocks.PNG)
+
+**Global DNS and Traffic Management**
+
+- Cloud Storage Solutions:
+    - AWS - _Amazon Route 53 DNS and Traffic Flow_
+    - Microsoft Azure - _Azure DNS and Traffic Manager_
+    - GCP - _Google Domains and Google DNS_
+- We can register our service domain:
+    - Example: "www.backstreetbrogrammer-online.com"
+- Route traffic to different regions based on:
+    - Latency
+    - Geo proximity
+    - etc.
+
+---
+
+## Chapter 06. Create Continuous Delivery Pipeline in AWS
+
+We will create a continuous delivery pipeline for a simple web application.
+
+We will first use a version control system to store our source code.
+
+Then, we will learn how to create a continuous delivery pipeline that will automatically deploy our web application
+whenever our source code is updated.
+
+Steps to create the continuous delivery pipeline:
+
+- Set up a `GitHub` repository for the application code
+- Create an `AWS Elastic Beanstalk` environment to deploy the application
+- Configure `AWS CodeBuild` to build the source code from GitHub
+- Use `AWS CodePipeline` to set up the continuous delivery pipeline with source, build, and deploy stages
+
+![ApplicationArchitecture](ApplicationArchitecture.PNG)
+
+**a) Set Up Git Repo**
+
+Set up a GitHub repository to store the application code.
+
+**b) Deploy Web App**
+
+Create the environment where the web application will be deployed using AWS Elastic Beanstalk.
+
+**c) Create Build Project**
+
+Configure and start the build process for the application using AWS CodeBuild.
+
+**d) Create Delivery Pipeline**
+
+Create a pipeline to automatically build and deploy the application using AWS CodePipeline.
+
+**e) Finalize Pipeline and Test**
+
+Add a review stage to the pipeline and test the pipeline.
