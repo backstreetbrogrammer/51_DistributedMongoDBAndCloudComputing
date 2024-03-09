@@ -19,6 +19,11 @@ Tools used:
 4. [MongoDB Sharding](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#chapter-04-mongodb-sharding)
 5. [Introduction to Cloud Computing](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#chapter-05-introduction-to-cloud-computing)
 6. [Create Continuous Delivery Pipeline in AWS](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#chapter-06-create-continuous-delivery-pipeline-in-aws)
+    - [Set Up Git Repo](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#set-up-git-repo)
+    - [Create Build Project](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#set-up-git-repo)
+    - [Create Delivery Pipeline](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#set-up-git-repo)
+    - [Finalize Pipeline and Test](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#set-up-git-repo)
+    - [Clean up resources](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#set-up-git-repo)
 
 ---
 
@@ -805,22 +810,457 @@ Steps to create the continuous delivery pipeline:
 
 ![ApplicationArchitecture](ApplicationArchitecture.PNG)
 
-**a) Set Up Git Repo**
+### Set Up Git Repo
 
 Set up a GitHub repository to store the application code.
 
-**b) Deploy Web App**
+_**Fork the starter repo**_
+
+- Login to your GitHub account
+- Navigate to repo:
+  [aws-elastic-beanstalk-express-js-sample](https://github.com/aws-samples/aws-elastic-beanstalk-express-js-sample)
+- Fork the repo
+
+![ForkRepo](ForkRepo.PNG)
+
+- Now the forked repo will be showing under your account's **Repositories**
+
+_**Clone and push a change**_
+
+- Open Git Bash in your local folder
+- Git clone the forked repo (change <USER> with your GitHub username)
+
+```
+$ git clone https://github.com/<USER>/aws-elastic-beanstalk-express-js-sample.git
+```
+
+- Edit a file
+
+```
+$ cd aws-elastic-beanstalk-express-js-sample/
+
+# change app.js file, for ex: print "Hello Guidemy Students!" instead of "Hello World!"
+$ vi app.js
+```
+
+- Add, Commit and Push
+
+```
+$ git add .
+$ git commit -m "first commit"
+$ git push
+```
+
+We have created a code repository containing a simple web app.
+
+We will be using this repository to start our continuous delivery pipeline.
+
+It's important to set it up properly, so we push code to it.
+
+### Deploy Web App
 
 Create the environment where the web application will be deployed using AWS Elastic Beanstalk.
 
-**c) Create Build Project**
+In this module, we will use the AWS Elastic Beanstalk console to create and deploy a web application.
+
+**AWS Elastic Beanstalk** is a **compute** service that makes it easy to deploy and manage applications on AWS without
+having to worry about the infrastructure that runs them.
+
+We will use the `Create web app` wizard to create an application and launch an environment with the AWS resources needed
+to run our application.
+
+In subsequent steps, we will be using this environment and our continuous delivery pipeline to deploy the `Hello World!`
+web app created in GitHub in the previous step.
+
+**_Steps:_**
+
+- Configure and create an AWS Elastic Beanstalk environment
+- Deploy a sample web app to AWS Elastic Beanstalk
+- Test the sample web app
+
+**_Terms used:_**
+
+**AWS Elastic Beanstalk** - A service that makes it easy to deploy our application on AWS. We simply upload our code
+and Elastic Beanstalk deploys, manages, and scales our application.
+
+**Environment** - Collection of AWS resources provisioned by Elastic Beanstalk that are used to run our application.
+
+**EC2 instance** - Virtual server in the cloud. Elastic Beanstalk will provision one or more Amazon EC2 instances when
+creating an environment.
+
+**Web server** - Software that uses the HTTP protocol to serve content over the Internet. It is used to store, process,
+and deliver web pages.
+
+**Platform** - Combination of operating system, programming language runtime, web server, application server, and
+Elastic Beanstalk components. Our application runs using the components provided by a platform.
+
+**_Configure and create an AWS Elastic Beanstalk app_**
+
+- In a new browser tab, open the
+  [AWS Elastic Beanstalk console](https://us-west-2.console.aws.amazon.com/elasticbeanstalk/home?region=us-west-2#/welcome)
+- Choose the orange `Create Application` button
+- Choose `Web server environment` under the Configure environment heading
+- In the text box under the heading Application name, enter `DevOpsGettingStarted`
+
+![AWSBeanStalk](AWSBeanStalk.PNG)
+
+- Choose the `Platform` and `Application Code` as given:
+
+![PlatformApplicationCode](PlatformApplicationCode.PNG)
+
+- Choose `Presets` as single instance free tier and click `Next`
+
+![Presets](Presets.PNG)
+
+- On the Configure service access screen, choose `Use an existing service role` for Service Role
+- For EC2 instance profile dropdown list, the values displayed in this dropdown list may vary, depending on whether our
+  account has previously created a new environment.
+- Choose one of the following, based on the values displayed in our list:
+    - If `aws-elasticbeanstalk-ec2-role` displays in the dropdown list, select it from the EC2 instance profile dropdown
+      list
+    - If another value displays in the list, and it’s the default EC2 instance profile intended for our environments,
+      select it from the EC2 instance profile dropdown list
+    - If the EC2 instance profile dropdown list doesn't list any values to choose from, expand the procedure that
+      follows, **Create IAM Role for EC2 instance** profile:
+        - Complete the steps in
+          [Create IAM Role for EC2 instance](https://docs.aws.amazon.com/codedeploy/latest/userguide/getting-started-create-iam-instance-profile.html)
+          profile to create an IAM Role that you can
+          subsequently select for the EC2 instance profile. Then, return back to this step.
+        - Now that we've created an IAM Role, and refreshed the list, it displays as a choice in the dropdown list.
+          Select the IAM Role we just created from the EC2 instance profile dropdown list.
+- Choose `Skip to Review` on the Configure service access page
+
+![ConfigureServiceAccess](ConfigureServiceAccess.PNG)
+
+- The `Review` page displays a summary of all our choices
+- Choose `Submit` at the bottom of the page to initialize the creation of our new environment
+
+While waiting for deployment, we should see:
+
+- A screen that will display status messages for our environment.
+- After a few minutes have passed, we will see a green banner with a checkmark at the top of the environment screen.
+
+![BeanStalkSuccess](BeanStalkSuccess.PNG)
+
+**_Test Our Web App_**
+
+- To test our sample web app, select and launch the link under the name of our environment (under `Domain`)
+- A new browser tab should open with a webpage congratulating us!
+
+![BeanStalkRunning](BeanStalkRunning.PNG)
+
+We have created an AWS Elastic Beanstalk environment and sample application.
+
+We will be using this environment and our continuous delivery pipeline to deploy the `Hello World!` web app we created
+in the previous module.
+
+### Create Build Project
 
 Configure and start the build process for the application using AWS CodeBuild.
 
-**d) Create Delivery Pipeline**
+In this module, we will use [AWS CodeBuild](https://aws.amazon.com/codebuild/?e=gs2020&p=cicd-three) to build the source
+code previously stored in our GitHub repository.
+
+AWS CodeBuild is a fully managed continuous integration service that compiles source code, runs tests, and produces
+software packages that are ready to deploy.
+
+**_Steps:_**
+
+- Create a build project with AWS CodeBuild
+- Set up GitHub as the source provider for a build project
+- Run a build on AWS CodeBuild
+
+**_Terms used:_**
+
+**Build process** - Process that converts source code files into an executable software artifact. It may include the
+following steps: compiling source code, running tests, and packaging software for deployment.
+
+**Continuous integration** - Software development practice of regularly pushing changes to a hosted repository, after
+which automated builds and tests are run.
+
+**Build environment** - Represents a combination of the operating system, programming language runtime, and tools that
+`CodeBuild` uses to run a build.
+
+**Buildspec** - Collection of build commands and related settings, in `YAML` format, that `CodeBuild` uses to run a
+build.
+
+**Build Project** - Includes information about how to run a build, including where to get the source code, which build
+environment to use, which build commands to run, and where to store the build output.
+
+**OAuth** - [Open protocol](https://oauth.net/) for secure authorization. OAuth enables us to connect our GitHub account
+to [third-party applications](https://docs.github.com/en/github/authenticating-to-github/authorizing-oauth-apps),
+including AWS CodeBuild.
+
+**_Configure the AWS CodeBuild project_**
+
+- In a new browser tab, open the
+  [AWS CodeBuild console](https://console.aws.amazon.com/codesuite/codebuild/start?region=us-west-2)
+- Choose the orange `Create project` button
+- In the Project name field, enter `Build-DevOpsGettingStarted`
+- Select `GitHub` from the `Source provider` dropdown menu
+- Confirm that the `Connect using OAuth` radio button is selected
+- Choose the white `Connect to GitHub` button.
+  A new browser tab will open asking us to give AWS CodeBuild access to our GitHub repo.
+- Choose the green `Authorize aws-codesuite` button
+- Enter our GitHub password
+- Choose the orange `Confirm` button
+- Confirm that **Managed Image** is selected
+- Confirm that `Environment` parameters look like this:
+
+![CodeBuildEnvironment](CodeBuildEnvironment.PNG)
+
+**_Create a BuildSpec file for the project_**
+
+- Select `Insert build commands`
+- Choose `Switch to editor
+- Replace the `Buildspec` in the editor with the code below:
+
+```javascript
+version: 0.2
+phases:
+    build:
+        commands:
+            - npm i --save
+artifacts:
+    files:
+        - '**/*'
+```
+
+- Choose the orange `Create build project` button. We should now see a dashboard for our project.
+
+![CodeBuildCreated](CodeBuildCreated.PNG)
+
+**_Test the CodeBuild project_**
+
+- Choose the orange `Start build` button. This will load a page to configure the build process.
+- Wait for the build to complete.
+  As we are waiting, we should see a green bar at the top of the page with the message `Build started`, the progress for
+  our build under `Build log`, and, after a couple minutes, a green checkmark and a `Succeeded` message confirming the
+  build worked.
+
+We have created a build project on AWS CodeBuild to run the build process of the `Hello World!` web app from our GitHub
+repository.
+
+We will be using this build project as the build step in our continuous delivery pipeline, which we will create in the
+next module.
+
+### Create Delivery Pipeline
 
 Create a pipeline to automatically build and deploy the application using AWS CodePipeline.
 
-**e) Finalize Pipeline and Test**
+In this module, we will use [AWS CodePipeline](https://aws.amazon.com/codepipeline/?e=gs2020&p=cicd-four) to set up a
+continuous delivery pipeline with source, build, and deploy stages.
+
+The pipeline will detect changes in the code stored in our GitHub repository, build the source code using AWS CodeBuild,
+and then deploy our application to AWS Elastic Beanstalk.
+
+**_Steps:_**
+
+- Set up a continuous delivery pipeline on AWS CodePipeline
+- Configure a source stage using our GitHub repo
+- Configure a build stage using AWS CodeBuild
+- Configure a deploy stage using our AWS ElasticBeanstalk application
+- Deploy the application hosted on GitHub to Elastic Beanstalk through a pipeline
+
+**_Terms used:_**
+
+**Continuous delivery** - Software development practice that allows developers to release software more quickly by
+automating the build, test, and deploy processes.
+
+**Pipeline** - Workflow model that describes how software changes go through the release process. Each pipeline is
+made up of a series of stages.
+
+**Stage** - Logical division of a pipeline, where actions are performed. A stage might be a build stage, where the
+source code is built and tests are run. It can also be a deployment stage, where code is deployed to runtime
+environments.
+
+**Action** - Set of tasks performed in a stage of the pipeline. For example, a source action can start a pipeline
+when source code is updated, and a deploy action can deploy code to a compute service like AWS Elastic Beanstalk.
+
+**_Create a new pipeline_**
+
+- In a browser window, open the
+  [AWS CodePipeline console](https://console.aws.amazon.com/codesuite/codepipeline/start?region=us-west-2).
+- Choose the orange `Create pipeline` button. A new screen will open up, so we can set up the pipeline.
+- In the `Pipeline` name field, enter `Pipeline-DevOpsGettingStarted`
+- Confirm that `New service role` is selected
+- Choose the orange `Next` button
+
+**_Configure the source stage_**
+
+- Select `GitHub version 1` from the `Source provider` dropdown menu.
+- Choose the white `Connect to GitHub` button. A new browser tab will open asking to give AWS CodePipeline access to our
+  GitHub repo.
+- Choose the green `Authorize aws-codesuite` button
+  Next, we will see a green box with the message `You have successfully configured the action with the provider`
+- From the `Repository` dropdown, select the repo we created in Module 1
+- Select `main` from the branch dropdown menu
+- Confirm that `GitHub webhooks` is selected
+- Choose the orange `Next` button
+
+**_Configure the build stage_**
+
+- From the `Build provider` dropdown menu, select `AWS CodeBuild`
+- Under `Region` confirm that the `US West (Oregon)` Region is selected
+- Select `Build-DevOpsGettingStarted` under `Project name`
+- Choose the orange `Next` button
+
+**_Configure the deploy stage_**
+
+- Select `AWS Elastic Beanstalk` from the `Deploy provider` dropdown menu
+- Under `Region`, confirm that the `US West (Oregon)` Region is selected
+- Select the field under `Application name` and confirm we can see the app `DevOpsGettingStarted` created in Module 2
+- Select `DevOpsGettingStarted-env` from the `Environment name` text-box
+- Choose the orange `Next` button. We will now see a page where we can review the pipeline configuration.
+- Choose the orange `Create pipeline` button.
+
+**_Watch first pipeline execution_**
+
+While watching the pipeline execution, we will see a page with a green bar at the top. This page shows all the steps
+defined for the pipeline and, after a few minutes, each will change from blue to green.
+
+- Once the `Deploy` stage has switched to green and it says `Succeeded`, choose `AWS Elastic Beanstalk`. A new tab
+  listing our AWS Elastic Beanstalk environments will open.
+- Select the URL in the `Devopsgettingstarted-env` row. We should see a webpage with a white background and the text
+  included in our GitHub commit in Module 1 => `Hello Guidemy Students!`
+
+![PipelineStarted](PipelineStarted.PNG)
+
+We have created a continuous delivery pipeline on AWS CodePipeline with three stages: source, build, and deploy.
+
+The source code from the GitHub repo created in Module 1 is part of the source stage.
+
+That source code is then built by AWS CodeBuild in the build stage.
+
+Finally, the built code is deployed to the AWS Elastic Beanstalk environment created in Module 3.
+
+### Finalize Pipeline and Test
 
 Add a review stage to the pipeline and test the pipeline.
+
+In this module, we will use [AWS CodePipeline](https://aws.amazon.com/codepipeline/?e=gs2020&p=cicd-five) to add a
+review stage to our continuous delivery pipeline.
+
+As part of this process, we can add an approval action to a stage at the point where we want the pipeline execution to
+stop so someone can manually approve or reject the action.
+
+Manual approvals are useful to have someone else review a change before deployment.
+
+If the action is approved, the pipeline execution resumes.
+
+If the action is rejected - or if no one approves or rejects the action within seven days - the result is the same as
+the action failing, and the pipeline execution does not continue.
+
+**_Steps:_**
+
+- Add a review stage to our pipeline
+- Manually approve a change before it is deployed
+
+**_Terms used:_**
+
+**Approval action** - Type of pipeline action that stops the pipeline execution until someone approves or rejects it.
+
+**Pipeline execution** - Set of changes, such as a merged commit, released by a pipeline. Pipeline executions traverse
+the pipeline stages in order. Each pipeline stage can only process one execution at a time. To do this, a stage is
+locked while it processes an execution.
+
+**Failed execution** - If an execution fails, it stops and does not completely traverse the pipeline. The pipeline
+status changes to Failed and the stage that was processing the execution is unlocked. A failed execution can be retried
+or replaced by a more recent execution.
+
+**_Create review stage in pipeline_**
+
+- Open the [AWS CodePipeline console](https://console.aws.amazon.com/codesuite/codepipeline/pipelines?region=us-west-2)
+- We should see the pipeline we created in Module 4, which was called `Pipeline-DevOpsGettingStarted`. Select this
+  pipeline.
+- Choose the white `Edit` button near the top of the page
+- Choose the white `Add stage` button between the `Build` and `Deploy` stages.
+- In the `Stage name` field, enter `Review`.
+- Choose the orange `Add stage` button.
+- In the `Review` stage, choose the white `Add action group` button.
+- Under `Action name`, enter `Manual_Review`.
+- From the `Action provider` dropdown, select `Manual approval`.
+- Confirm that the optional fields have been left blank.
+- Choose the orange `Done` button.
+- Choose the orange `Save` button at the top of the page.
+- Choose the orange `Save` button to confirm the changes. We will now see our pipeline with four stages: Source, Build,
+  Review, and Deploy.
+
+**_Push a new commit to our repo_**
+
+- Open the `app.js` file from Module 1
+- Change the message in Line 5: `'Thank you Guidemy Students!'`
+- Save the file
+- Add, commit and push
+
+```
+$ git add .
+$ git commit -m "Full pipeline test"
+$ git push
+```
+
+**_Monitor the pipeline and manually approve the change_**
+
+- Navigate to the
+  [AWS CodePipeline console](https://console.aws.amazon.com/codesuite/codepipeline/pipelines?region=us-west-2)
+- Select the pipeline named `Pipeline-DevOpsGettingStarted`. We should see the Source and Build stages switch from
+  blue to green.
+- When the `Review` stage switches to blue, choose the white `Review` button.
+- Write an approval comment in the `Comments` text-box.
+- Choose the orange `Approve` button.
+- Wait for the `Review` and `Deploy` stages to switch to green.
+- Select the AWS Elastic Beanstalk link in the `Deploy` stage. A new tab listing our Elastic Beanstalk environments will
+  open.
+- Select the URL in the `Devopsgettingstarted-env` row. We should see a webpage with a white background and the text we
+  had in our most recent GitHub commit => `Thank you Guidemy Students!`
+
+Congratulations! We have a fully functional continuous delivery pipeline hosted on AWS.
+
+We have used AWS CodePipeline to add a review stage with manual approval to our continuous delivery pipeline.
+
+Now, our code changes will have to be reviewed and approved before they are deployed to AWS Elastic Beanstalk.
+
+### Clean up resources
+
+**_Delete AWS Elastic Beanstalk application_**
+
+- In a new browser window, open the
+  [AWS Elastic Beanstalk Console](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-west-2#/applications)
+- In the left navigation menu, click on `"Applications."` We should see the `"DevOpsGettingStarted"` application listed
+  under `"All applications."`
+- Select the radio button next to `"DevOpsGettingStarted."`
+- Click the white dropdown `"Actions"` button at the top of the page.
+- Select `"Delete application"` under the dropdown menu.
+- Type `"DevOpsGettingStarted"` in the text box to confirm deletion.
+- Click the orange `"Delete"` button.
+
+**_Delete pipeline in AWS CodePipeline_**
+
+- In a new browser window, open the
+  [AWS CodePipeline Console](https://console.aws.amazon.com/codesuite/codepipeline/pipelines?region=us-west-2)
+- Select the radio button next to `"Pipeline-DevOpsGettingStarted."`
+- Click the white `"Delete pipeline"` button at the top of the page.
+- Type `"delete"` in the text box to confirm deletion.
+- Click the orange `"Delete"` button.
+
+**_Delete pipeline resources from Amazon S3 bucket_**
+
+- In a new browser window, open the [Amazon S3 Console](https://s3.console.aws.amazon.com/s3/home?region-us-west-2)
+- We should see a bucket named `"codepipeline-us-west-2"` followed by our AWS account number. Click on this bucket.
+  Inside this bucket, we should see a folder named `"Pipeline-DevOpsGettingStarted."`
+- Select the checkbox next to the `"Pipeline-DevOpsGettingStarted"` folder.
+- Click the white `"Actions"` button from the dropdown menu.
+- Select `"Delete"` under the dropdown menu.
+- Click the blue `"Delete"` button.
+
+**_Delete build project in AWS CodeBuild_**
+
+- In a new browser window, open the
+  [AWS CodeBuild Console](https://console.aws.amazon.com/codesuite/codebuild/projects?region=us-west-2)
+- In the left navigation, click on `"Build projects"` under `"Build."` We should see the `"Build-DevOpsGettingStarted"`
+  build project listed under `"Build project."`
+- Select the radio button next to `"Build-DevOpsGettingStarted."`
+- Click the white `"Delete build project"` button at the top of the page.
+- Type `"delete"` in the text box to confirm deletion.
+- Click the orange `"Delete"` button.
+
