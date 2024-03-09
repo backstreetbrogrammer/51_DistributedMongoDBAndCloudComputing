@@ -20,10 +20,11 @@ Tools used:
 5. [Introduction to Cloud Computing](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#chapter-05-introduction-to-cloud-computing)
 6. [Create Continuous Delivery Pipeline in AWS](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#chapter-06-create-continuous-delivery-pipeline-in-aws)
     - [Set Up Git Repo](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#set-up-git-repo)
-    - [Create Build Project](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#set-up-git-repo)
-    - [Create Delivery Pipeline](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#set-up-git-repo)
-    - [Finalize Pipeline and Test](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#set-up-git-repo)
-    - [Clean up resources](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#set-up-git-repo)
+    - [Deploy Web App](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#deploy-web-app)
+    - [Create Build Project](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#create-build-project)
+    - [Create Delivery Pipeline](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#create-delivery-pipeline)
+    - [Finalize Pipeline and Test](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#finalize-pipeline-and-test)
+    - [Clean up resources](https://github.com/backstreetbrogrammer/51_DistributedMongoDBAndCloudComputing?tab=readme-ov-file#clean-up-resources)
 
 ---
 
